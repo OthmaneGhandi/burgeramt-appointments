@@ -5,6 +5,8 @@ import json
 import logging
 import time
 
+_logger = logging.getLogger(__name__)
+
 
 ALL_BUERGERAMTS = (
     122210, 122217, 122219, 122227, 122231, 122243, 122252, 122260, 122262,
@@ -32,7 +34,7 @@ def get_appointment_dates(buergeramt_ids=ALL_BUERGERAMTS, service_id=ANMELDUNG_S
     params = {
         'termin': 1,  # Not sure if necessary
         'dienstleisterlist': ','.join(buergeramt_ids),
-        'anliegen': (service_id, ),
+        'anliegen[]': service_id
     }
     response = requests.get('https://service.berlin.de/terminvereinbarung/termin/tag.php', params=params, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -58,10 +60,12 @@ def log_appointment_dates(dates):
     """
     logging.basicConfig(filename='dates.log', format='%(message)s', level=logging.INFO)
     date_strings = [d.strftime('%Y-%m-%dT%H:%M:%S') for d in dates]
-    logging.info(json.dumps({
+    result = json.dumps({
     	'timestamp': datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
     	'available_dates': date_strings
-    }))
+    })
+    logging.info(result)
+    print('{0}'.format(result))
 
 
 def observe(limit, polling_delay):
